@@ -37,4 +37,12 @@ type Network struct {
 	Gateway   net.IP `yaml:"gateway,omitempty" json:"gateway,omitempty"`     // only used by "user-v2", "host" and "shared" networks
 	DHCPEnd   net.IP `yaml:"dhcpEnd,omitempty" json:"dhcpEnd,omitempty"`     // default: same as Gateway, last byte is 254
 	NetMask   net.IP `yaml:"netmask,omitempty" json:"netmask,omitempty"`     // default: 255.255.255.0
+
+	// OutboundAllow is a list of regex patterns for allowed outbound domains, threaded
+	// into gvproxy's Configuration.OutboundAllow. Only used by "user-v2" networks.
+	OutboundAllow []string `yaml:"outboundAllow,omitempty" json:"outboundAllow,omitempty"`
+
+	// BlockAllOutbound blocks all guest-initiated outbound TCP/UDP connections,
+	// threaded into gvproxy's Configuration.BlockAllOutbound. Only used by "user-v2" networks.
+	BlockAllOutbound bool `yaml:"blockAllOutbound,omitempty" json:"blockAllOutbound,omitempty"`
 }

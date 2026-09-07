@@ -36,6 +36,14 @@ type GVisorNetstackOpts struct {
 	Async bool
 
 	DefaultLeases map[string]string
+
+	// OutboundAllow is a list of regex patterns for allowed outbound domains,
+	// threaded into gvproxy's Configuration.OutboundAllow.
+	OutboundAllow []string
+
+	// BlockAllOutbound blocks all guest-initiated outbound TCP/UDP connections,
+	// threaded into gvproxy's Configuration.BlockAllOutbound.
+	BlockAllOutbound bool
 }
 
 var opts *GVisorNetstackOpts
@@ -77,6 +85,8 @@ func StartGVisorNetstack(ctx context.Context, gVisorOpts *GVisorNetstackOpts) er
 		Forwards:          map[string]string{},
 		DNS:               []types.Zone{},
 		DNSSearchDomains:  searchDomains(),
+		OutboundAllow:     opts.OutboundAllow,
+		BlockAllOutbound:  opts.BlockAllOutbound,
 		NAT: map[string]string{
 			gatewayIP: "127.0.0.1",
 		},

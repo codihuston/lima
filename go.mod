@@ -37,7 +37,7 @@ require (
 	github.com/goccy/go-yaml v1.19.2
 	github.com/google/go-cmp v0.7.0
 	github.com/google/yamlfmt v0.21.0
-	github.com/inetaf/tcpproxy v0.0.0-20250222171855-c4b9df066048
+	github.com/inetaf/tcpproxy v0.0.0-20260515195445-c159a6051109
 	github.com/invopop/jsonschema v0.14.0
 	github.com/mattn/go-isatty v0.0.24
 	github.com/mattn/go-shellwords v1.0.14
@@ -135,10 +135,13 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260526163538-3dc84a4a5aaa // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 	// gomodjail:unconfined
-	gvisor.dev/gvisor v0.0.0-20240916094835-a174eb65023f // indirect
+	gvisor.dev/gvisor v0.0.0-20260413194555-9680d69bf798 // indirect
 )
 
 require (
 	github.com/apparentlymart/go-textseg/v17 v17.0.1 // indirect
 	github.com/clipperhouse/uax29/v2 v2.2.0 // indirect
+	golang.org/x/exp v0.0.0-20241108190413-2d47ceb2692f // indirect
 )
+
+replace github.com/containers/gvisor-tap-vsock => github.com/codihuston/gvisor-tap-vsock v0.8.8-outbound-allowlist-609.1

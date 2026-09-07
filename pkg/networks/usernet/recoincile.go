@@ -69,6 +69,16 @@ func Start(ctx context.Context, name string) error {
 			return err
 		}
 
+		outboundAllow, err := OutboundAllow(name)
+		if err != nil {
+			return err
+		}
+
+		blockAllOutbound, err := BlockAllOutbound(name)
+		if err != nil {
+			return err
+		}
+
 		err = lockutil.WithDirLock(usernetDir, func() error {
 			self, err := os.Executable()
 			if err != nil {
@@ -84,6 +94,12 @@ func Start(ctx context.Context, name string) error {
 			}
 			if leasesString != "" {
 				args = append(args, "--leases", leasesString)
+			}
+			for _, pattern := range outboundAllow {
+				args = append(args, "--outbound-allow", pattern)
+			}
+			if blockAllOutbound {
+				args = append(args, "--block-all-outbound")
 			}
 			cmd := exec.CommandContext(ctx, self, args...)
 			cmd.SysProcAttr = executil.BackgroundSysProcAttr

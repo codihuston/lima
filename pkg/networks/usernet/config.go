@@ -98,6 +98,31 @@ func DNSIP(subnet net.IP) string {
 	return cidr.Inc(cidr.Inc(cidr.Inc(subnet))).String()
 }
 
+// OutboundAllow returns the outbound domain allowlist for the given network name.
+func OutboundAllow(name string) ([]string, error) {
+	cfg, err := networks.LoadConfig()
+	if err != nil {
+		return nil, err
+	}
+	if err := cfg.Check(name); err != nil {
+		return nil, err
+	}
+	return cfg.Networks[name].OutboundAllow, nil
+}
+
+// BlockAllOutbound returns whether guest-initiated outbound connections are
+// blocked entirely for the given network name.
+func BlockAllOutbound(name string) (bool, error) {
+	cfg, err := networks.LoadConfig()
+	if err != nil {
+		return false, err
+	}
+	if err := cfg.Check(name); err != nil {
+		return false, err
+	}
+	return cfg.Networks[name].BlockAllOutbound, nil
+}
+
 // Leases returns a leases file based on network name.
 func Leases(name string) (string, error) {
 	dir, err := dirnames.LimaNetworksDir()
