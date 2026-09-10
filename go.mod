@@ -144,4 +144,4 @@ require (
 	golang.org/x/exp v0.0.0-20241108190413-2d47ceb2692f // indirect
 )
 
-replace github.com/containers/gvisor-tap-vsock => github.com/codihuston/gvisor-tap-vsock v0.8.8-outbound-allowlist-609.1
+replace github.com/containers/gvisor-tap-vsock => github.com/codihuston/gvisor-tap-vsock v0.8.8-outbound-allowlist-609.2

@@ -45,4 +45,11 @@ type Network struct {
 	// BlockAllOutbound blocks all guest-initiated outbound TCP/UDP connections,
 	// threaded into gvproxy's Configuration.BlockAllOutbound. Only used by "user-v2" networks.
 	BlockAllOutbound bool `yaml:"blockAllOutbound,omitempty" json:"blockAllOutbound,omitempty"`
+
+	// GatewayPortAllow lists the host ports on the gateway address that
+	// remain reachable from the guest while OutboundAllow is active,
+	// threaded into gvproxy's Configuration.GatewayPortAllow. Default:
+	// empty, meaning no port on the gateway address is reachable. Only used
+	// by "user-v2" networks.
+	GatewayPortAllow []int `yaml:"gatewayPortAllow,omitempty" json:"gatewayPortAllow,omitempty"`
 }

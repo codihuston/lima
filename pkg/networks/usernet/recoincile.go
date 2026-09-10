@@ -12,6 +12,7 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -79,6 +80,11 @@ func Start(ctx context.Context, name string) error {
 			return err
 		}
 
+		gatewayPortAllow, err := GatewayPortAllow(name)
+		if err != nil {
+			return err
+		}
+
 		err = lockutil.WithDirLock(usernetDir, func() error {
 			self, err := os.Executable()
 			if err != nil {
@@ -100,6 +106,9 @@ func Start(ctx context.Context, name string) error {
 			}
 			if blockAllOutbound {
 				args = append(args, "--block-all-outbound")
+			}
+			for _, port := range gatewayPortAllow {
+				args = append(args, "--gateway-port-allow", strconv.Itoa(port))
 			}
 			cmd := exec.CommandContext(ctx, self, args...)
 			cmd.SysProcAttr = executil.BackgroundSysProcAttr

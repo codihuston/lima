@@ -44,6 +44,11 @@ type GVisorNetstackOpts struct {
 	// BlockAllOutbound blocks all guest-initiated outbound TCP/UDP connections,
 	// threaded into gvproxy's Configuration.BlockAllOutbound.
 	BlockAllOutbound bool
+
+	// GatewayPortAllow lists the host ports on the gateway address reachable
+	// from the guest while OutboundAllow is active, threaded into gvproxy's
+	// Configuration.GatewayPortAllow. Default: empty (no port reachable).
+	GatewayPortAllow []int
 }
 
 var opts *GVisorNetstackOpts
@@ -87,6 +92,7 @@ func StartGVisorNetstack(ctx context.Context, gVisorOpts *GVisorNetstackOpts) er
 		DNSSearchDomains:  searchDomains(),
 		OutboundAllow:     opts.OutboundAllow,
 		BlockAllOutbound:  opts.BlockAllOutbound,
+		GatewayPortAllow:  gatewayPortAllowUint16(opts.GatewayPortAllow),
 		NAT: map[string]string{
 			gatewayIP: "127.0.0.1",
 		},
@@ -301,6 +307,25 @@ func muxWithExtension(n *virtualnetwork.VirtualNetwork) *http.ServeMux {
 		}
 	})
 	return m
+}
+
+// gatewayPortAllowUint16 converts a configured gateway port list to the
+// uint16 form gvisor-tap-vsock's Configuration expects, dropping (with a
+// warning) any value outside the valid TCP/UDP port range rather than
+// wrapping it into an unrelated port via truncation.
+func gatewayPortAllowUint16(ports []int) []uint16 {
+	if len(ports) == 0 {
+		return nil
+	}
+	out := make([]uint16, 0, len(ports))
+	for _, p := range ports {
+		if p < 0 || p > 65535 {
+			logrus.Warnf("ignoring out-of-range gatewayPortAllow entry %d (must be 0-65535)", p)
+			continue
+		}
+		out = append(out, uint16(p))
+	}
+	return out
 }
 
 func searchDomains() []string {

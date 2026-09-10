@@ -36,6 +36,23 @@ nameserver 8.8.8.8`)
 	})
 }
 
+func TestGatewayPortAllowUint16(t *testing.T) {
+	t.Run("empty input returns nil", func(t *testing.T) {
+		var expected []uint16
+		assert.DeepEqual(t, gatewayPortAllowUint16(nil), expected)
+	})
+
+	t.Run("valid ports pass through", func(t *testing.T) {
+		got := gatewayPortAllowUint16([]int{80, 443, 65535, 0})
+		assert.DeepEqual(t, got, []uint16{80, 443, 65535, 0})
+	})
+
+	t.Run("out-of-range ports are dropped, not truncated", func(t *testing.T) {
+		got := gatewayPortAllowUint16([]int{80, -1, 65536, 443})
+		assert.DeepEqual(t, got, []uint16{80, 443})
+	})
+}
+
 func createResolveFile(t *testing.T, file, content string) {
 	f, err := os.Create(file)
 	assert.NilError(t, err)

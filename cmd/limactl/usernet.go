@@ -33,6 +33,7 @@ func newUsernetCommand() *cobra.Command {
 	hostagentCommand.Flags().StringToString("leases", nil, "Pass default static leases for startup. Eg: '192.168.104.1=52:55:55:b3:bc:d9,192.168.104.2=5a:94:ef:e4:0c:df' ")
 	hostagentCommand.Flags().StringArray("outbound-allow", nil, "Regex pattern for an allowed outbound domain (SNI-verified). May be repeated.")
 	hostagentCommand.Flags().Bool("block-all-outbound", false, "Block all guest-initiated outbound TCP/UDP connections")
+	hostagentCommand.Flags().IntSlice("gateway-port-allow", nil, "Host port on the gateway address reachable from the guest while outbound-allow is active. May be repeated. Default: none.")
 	return hostagentCommand
 }
 
@@ -87,6 +88,11 @@ func usernetAction(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
+	gatewayPortAllow, err := cmd.Flags().GetIntSlice("gateway-port-allow")
+	if err != nil {
+		return err
+	}
+
 	os.RemoveAll(endpoint)
 	os.RemoveAll(qemuSocket)
 	os.RemoveAll(fdSocket)
@@ -106,5 +112,6 @@ func usernetAction(cmd *cobra.Command, _ []string) error {
 		DefaultLeases:    leases,
 		OutboundAllow:    outboundAllow,
 		BlockAllOutbound: blockAllOutbound,
+		GatewayPortAllow: gatewayPortAllow,
 	})
 }

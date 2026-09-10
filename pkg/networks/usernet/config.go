@@ -123,6 +123,19 @@ func BlockAllOutbound(name string) (bool, error) {
 	return cfg.Networks[name].BlockAllOutbound, nil
 }
 
+// GatewayPortAllow returns the gateway-address port allowlist for the given
+// network name.
+func GatewayPortAllow(name string) ([]int, error) {
+	cfg, err := networks.LoadConfig()
+	if err != nil {
+		return nil, err
+	}
+	if err := cfg.Check(name); err != nil {
+		return nil, err
+	}
+	return cfg.Networks[name].GatewayPortAllow, nil
+}
+
 // Leases returns a leases file based on network name.
 func Leases(name string) (string, error) {
 	dir, err := dirnames.LimaNetworksDir()
