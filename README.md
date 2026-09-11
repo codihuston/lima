@@ -103,3 +103,16 @@ Lima follows the [CNCF Code of Conduct](https://github.com/cncf/foundation/blob/
 </picture>
 
 The Linux Foundation® (TLF) has registered trademarks and uses trademarks. For a list of TLF trademarks, see [Trademark Usage](https://www.linuxfoundation.org/legal/trademark-usage).
+
+### Kitchen egress fork
+
+For `mode: user-v2` networks, `gatewayAllowedPorts` is the host TCP/UDP port
+allowlist, default none. These ports remain reachable when `blockAllOutbound`
+is set; that flag controls external forwarding. `outboundAllow` accepts regular
+expressions, not literal hostnames. Kitchen supplies anchored, escaped patterns.
+The hidden usernet child carries gateway ports through `--gateway-allowed-port`.
+
+This fork selects the gVisor version declared by its gvisor-tap-vsock replacement
+and uses that replacement's UDP proxy callback. Test and build new tags from fresh
+module downloads: an older tag's module-proxy content differs from its Git source,
+which can otherwise conceal incompatible forwarding APIs.

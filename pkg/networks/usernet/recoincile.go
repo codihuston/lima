@@ -79,6 +79,11 @@ func Start(ctx context.Context, name string) error {
 			return err
 		}
 
+		gatewayPorts, err := GatewayAllowedPorts(name)
+		if err != nil {
+			return err
+		}
+
 		err = lockutil.WithDirLock(usernetDir, func() error {
 			self, err := os.Executable()
 			if err != nil {
@@ -101,6 +106,7 @@ func Start(ctx context.Context, name string) error {
 			if blockAllOutbound {
 				args = append(args, "--block-all-outbound")
 			}
+			args = append(args, GatewayArgs(gatewayPorts)...)
 			cmd := exec.CommandContext(ctx, self, args...)
 			cmd.SysProcAttr = executil.BackgroundSysProcAttr
 

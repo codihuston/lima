@@ -32,7 +32,8 @@ func newUsernetCommand() *cobra.Command {
 	hostagentCommand.Flags().Int("mtu", 1500, "mtu")
 	hostagentCommand.Flags().StringToString("leases", nil, "Pass default static leases for startup. Eg: '192.168.104.1=52:55:55:b3:bc:d9,192.168.104.2=5a:94:ef:e4:0c:df' ")
 	hostagentCommand.Flags().StringArray("outbound-allow", nil, "Regex pattern for an allowed outbound domain (SNI-verified). May be repeated.")
-	hostagentCommand.Flags().Bool("block-all-outbound", false, "Block all guest-initiated outbound TCP/UDP connections")
+	hostagentCommand.Flags().Bool("block-all-outbound", false, "Block external guest-initiated TCP/UDP connections; configured gateway ports remain reachable")
+	hostagentCommand.Flags().IntSlice("gateway-allowed-port", nil, "Host TCP/UDP port reachable through the gateway (default none). May be repeated.")
 	return hostagentCommand
 }
 
@@ -87,6 +88,15 @@ func usernetAction(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
+	gatewayPorts, err := cmd.Flags().GetIntSlice("gateway-allowed-port")
+	if err != nil {
+		return err
+	}
+	for _, port := range gatewayPorts {
+		if port < 1 || port > 65535 {
+			return fmt.Errorf("invalid gatewayAllowedPorts port %d: expected 1..65535", port)
+		}
+	}
 	os.RemoveAll(endpoint)
 	os.RemoveAll(qemuSocket)
 	os.RemoveAll(fdSocket)
@@ -98,13 +108,14 @@ func usernetAction(cmd *cobra.Command, _ []string) error {
 	// LIMA_USERNET_RESOLVE_IP_ADDRESS_TIMEOUT: Specifies the timeout duration for resolving IP addresses in minutes. Default is 2 minutes.
 
 	return usernet.StartGVisorNetstack(ctx, &usernet.GVisorNetstackOpts{
-		MTU:              mtu,
-		Endpoint:         endpoint,
-		QemuSocket:       qemuSocket,
-		FdSocket:         fdSocket,
-		Subnet:           subnet,
-		DefaultLeases:    leases,
-		OutboundAllow:    outboundAllow,
-		BlockAllOutbound: blockAllOutbound,
+		MTU:                 mtu,
+		Endpoint:            endpoint,
+		QemuSocket:          qemuSocket,
+		FdSocket:            fdSocket,
+		Subnet:              subnet,
+		DefaultLeases:       leases,
+		OutboundAllow:       outboundAllow,
+		BlockAllOutbound:    blockAllOutbound,
+		GatewayAllowedPorts: gatewayPorts,
 	})
 }

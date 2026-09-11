@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net"
 	"path/filepath"
+	"strconv"
 
 	"github.com/apparentlymart/go-cidr/cidr"
 
@@ -111,7 +112,7 @@ func OutboundAllow(name string) ([]string, error) {
 }
 
 // BlockAllOutbound returns whether guest-initiated outbound connections are
-// blocked entirely for the given network name.
+// blocked externally for the given network name. Gateway ports are independent.
 func BlockAllOutbound(name string) (bool, error) {
 	cfg, err := networks.LoadConfig()
 	if err != nil {
@@ -121,6 +122,27 @@ func BlockAllOutbound(name string) (bool, error) {
 		return false, err
 	}
 	return cfg.Networks[name].BlockAllOutbound, nil
+}
+
+// GatewayAllowedPorts returns the explicit host-port policy for a user network.
+func GatewayAllowedPorts(name string) ([]int, error) {
+	cfg, err := networks.LoadConfig()
+	if err != nil {
+		return nil, err
+	}
+	if err := cfg.Check(name); err != nil {
+		return nil, err
+	}
+	return cfg.Networks[name].GatewayAllowedPorts, nil
+}
+
+// GatewayArgs serializes a port policy for the hidden usernet child command.
+func GatewayArgs(ports []int) []string {
+	var args []string
+	for _, port := range ports {
+		args = append(args, "--gateway-allowed-port", strconv.Itoa(port))
+	}
+	return args
 }
 
 // Leases returns a leases file based on network name.

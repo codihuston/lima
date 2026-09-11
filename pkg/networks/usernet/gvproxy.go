@@ -41,9 +41,11 @@ type GVisorNetstackOpts struct {
 	// threaded into gvproxy's Configuration.OutboundAllow.
 	OutboundAllow []string
 
-	// BlockAllOutbound blocks all guest-initiated outbound TCP/UDP connections,
+	// BlockAllOutbound blocks external guest-initiated TCP/UDP connections,
 	// threaded into gvproxy's Configuration.BlockAllOutbound.
 	BlockAllOutbound bool
+
+	GatewayAllowedPorts []int
 }
 
 var opts *GVisorNetstackOpts
@@ -53,15 +55,38 @@ const gatewayMacAddr = "5a:94:ef:e4:0c:dd"
 func StartGVisorNetstack(ctx context.Context, gVisorOpts *GVisorNetstackOpts) error {
 	opts = gVisorOpts
 
-	ip, ipNet, err := net.ParseCIDR(opts.Subnet)
+	config, err := netstackConfig(gVisorOpts)
 	if err != nil {
 		return err
+	}
+
+	groupErrs, ctx := errgroup.WithContext(ctx)
+	err = run(ctx, groupErrs, config)
+	if err != nil {
+		return err
+	}
+	if opts.Async {
+		return err
+	}
+	return groupErrs.Wait()
+}
+
+// netstackConfig is the configuration consumed by the real network stack.
+func netstackConfig(options *GVisorNetstackOpts) (*types.Configuration, error) {
+	for _, port := range options.GatewayAllowedPorts {
+		if port < 1 || port > 65535 {
+			return nil, fmt.Errorf("invalid gatewayAllowedPorts port %d: expected 1..65535", port)
+		}
+	}
+	ip, ipNet, err := net.ParseCIDR(options.Subnet)
+	if err != nil {
+		return nil, err
 	}
 	gatewayIP := GatewayIP(ip)
 
 	leases := map[string]string{}
-	if opts.DefaultLeases != nil {
-		for k, v := range opts.DefaultLeases {
+	if options.DefaultLeases != nil {
+		for k, v := range options.DefaultLeases {
 			if ipNet.Contains(net.ParseIP(k)) {
 				leases[k] = v
 			}
@@ -76,32 +101,25 @@ func StartGVisorNetstack(ctx context.Context, gVisorOpts *GVisorNetstackOpts) er
 	// - DNS is equivalent to GatewayIP
 	// - GatewayIP is equivalent to NAT configuration
 	config := types.Configuration{
-		Debug:             false,
-		MTU:               opts.MTU,
-		Subnet:            opts.Subnet,
-		GatewayIP:         gatewayIP,
-		GatewayMacAddress: gatewayMacAddr,
-		DHCPStaticLeases:  leases,
-		Forwards:          map[string]string{},
-		DNS:               []types.Zone{},
-		DNSSearchDomains:  searchDomains(),
-		OutboundAllow:     opts.OutboundAllow,
-		BlockAllOutbound:  opts.BlockAllOutbound,
+		Debug:               false,
+		MTU:                 options.MTU,
+		Subnet:              options.Subnet,
+		GatewayIP:           gatewayIP,
+		GatewayMacAddress:   gatewayMacAddr,
+		DHCPStaticLeases:    leases,
+		Forwards:            map[string]string{},
+		DNS:                 []types.Zone{},
+		DNSSearchDomains:    searchDomains(),
+		OutboundAllow:       options.OutboundAllow,
+		BlockAllOutbound:    options.BlockAllOutbound,
+		GatewayAllowedPorts: append([]int(nil), options.GatewayAllowedPorts...),
 		NAT: map[string]string{
 			gatewayIP: "127.0.0.1",
 		},
 		GatewayVirtualIPs: []string{gatewayIP},
 	}
 
-	groupErrs, ctx := errgroup.WithContext(ctx)
-	err = run(ctx, groupErrs, &config)
-	if err != nil {
-		return err
-	}
-	if opts.Async {
-		return err
-	}
-	return groupErrs.Wait()
+	return &config, nil
 }
 
 func run(ctx context.Context, g *errgroup.Group, configuration *types.Configuration) error {

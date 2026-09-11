@@ -42,7 +42,11 @@ type Network struct {
 	// into gvproxy's Configuration.OutboundAllow. Only used by "user-v2" networks.
 	OutboundAllow []string `yaml:"outboundAllow,omitempty" json:"outboundAllow,omitempty"`
 
-	// BlockAllOutbound blocks all guest-initiated outbound TCP/UDP connections,
+	// BlockAllOutbound blocks external guest-initiated TCP/UDP connections,
 	// threaded into gvproxy's Configuration.BlockAllOutbound. Only used by "user-v2" networks.
 	BlockAllOutbound bool `yaml:"blockAllOutbound,omitempty" json:"blockAllOutbound,omitempty"`
+
+	// GatewayAllowedPorts permits host TCP/UDP ports through the gateway NAT.
+	// Default none; applies independently of, and before, BlockAllOutbound.
+	GatewayAllowedPorts []int `yaml:"gatewayAllowedPorts,omitempty" json:"gatewayAllowedPorts,omitempty"`
 }

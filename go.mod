@@ -135,13 +135,12 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260526163538-3dc84a4a5aaa // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 	// gomodjail:unconfined
-	gvisor.dev/gvisor v0.0.0-20260413194555-9680d69bf798 // indirect
+	gvisor.dev/gvisor v0.0.0-20240916094835-a174eb65023f // indirect
 )
 
 require (
 	github.com/apparentlymart/go-textseg/v17 v17.0.1 // indirect
 	github.com/clipperhouse/uax29/v2 v2.2.0 // indirect
-	golang.org/x/exp v0.0.0-20241108190413-2d47ceb2692f // indirect
 )
 
-replace github.com/containers/gvisor-tap-vsock => github.com/codihuston/gvisor-tap-vsock v0.8.8-outbound-allowlist-609.1
+replace github.com/containers/gvisor-tap-vsock => github.com/codihuston/gvisor-tap-vsock v0.8.8-kitchen.1
